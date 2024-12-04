@@ -38,11 +38,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     <Text fontSize="lg" fontWeight="bold" isTruncated>
                         {product.title}
                     </Text>
-                    {product.availabilityStatus === "In Stock" ? (
-                        <Badge colorScheme="green">{product.availabilityStatus}</Badge>
-                    ) : (
-                        <Badge colorScheme="red">{product.availabilityStatus}</Badge>
-                    )}
+                    <Badge
+                        colorPalette={product.availabilityStatus === "In Stock" ? "green" : "red"}
+                    >
+                        {product.availabilityStatus}
+                    </Badge>
                 </Flex>
 
                 {/* Price */}
