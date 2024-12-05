@@ -12,7 +12,7 @@ import {
     HStack,
     Stack,
     Button,
-    Icon,
+    Icon, Separator,
 } from "@chakra-ui/react";
 import { useParams, Link } from "react-router-dom";
 import { HiMiniStar } from "react-icons/hi2";
@@ -126,8 +126,54 @@ const ProductDetailPage: React.FC = () => {
                             ({product.rating.toFixed(1)})
                         </Text>
                     </HStack>
+                    <Separator />
+                    <Text fontSize="sm" color="gray.500">
+                        Shipping Information: {product.shippingInformation}
+                    </Text>
+                    <Text fontSize="sm" color="gray.500">
+                        Warranty: {product.warrantyInformation}
+                    </Text>
                 </VStack>
             </Flex>
+
+            {/* Reviews Section */}
+            <Box mt="8" py="4">
+                <Heading size="md" mb="4">
+                    Customer Reviews
+                </Heading>
+                {product.reviews && product.reviews.length > 0 ? (
+                    <Stack spacing="4">
+                        {product.reviews.map((review, index) => (
+                            <Box
+                                key={index}
+                                p="4"
+                                borderWidth="1px"
+                                borderRadius="lg"
+                                bg="gray.50"
+                                boxShadow="sm"
+                            >
+                                <HStack justify="space-between" align="start">
+                                    <Text fontWeight="bold" color="black">
+                                        {review.reviewerName}
+                                    </Text>
+                                    <Badge
+                                        colorScheme={review.rating >= 4 ? "green" : "yellow"}
+                                    >
+                                        {review.rating} Stars
+                                    </Badge>
+                                </HStack>
+                                <Text fontSize="sm" color="gray.600" mt="2">
+                                    {review.comment}
+                                </Text>
+                            </Box>
+                        ))}
+                    </Stack>
+                ) : (
+                    <Text fontSize="sm" color="gray.600">
+                        No reviews available for this product.
+                    </Text>
+                )}
+            </Box>
         </Container>
     );
 };
