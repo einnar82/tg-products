@@ -28,7 +28,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             <Flex alignItems="center">
                 {/* Brand/Logo */}
                 <Heading as="h1" size="lg" color="white">
-                    ProductHub
+                    DummyProducts
                 </Heading>
 
                 {/* Spacer for alignment */}
