@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, useRef} from "react";
 import {
     Box,
     Flex,
@@ -19,6 +19,7 @@ const Navbar: React.FC = () => {
     const navigate = useNavigate();
     const { state, dispatch, actions } = useAppState();
     const { suggestions } = state;
+    const suggestionsRef = useRef<HTMLDivElement | null>(null);
 
     const [searchTerm, setSearchTerm] = useState<string>("");
 
@@ -70,6 +71,23 @@ const Navbar: React.FC = () => {
             dispatch({ type: "SET_SUGGESTIONS", payload: [] });
         }
     }, [debouncedSearchTerm, dispatch, actions]);
+
+    // Close suggestions when clicking outside of the search bar
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                suggestionsRef.current &&
+                !suggestionsRef.current.contains(event.target as Node)
+            ) {
+                dispatch({ type: "SET_SUGGESTIONS", payload: [] });
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [dispatch]);
 
     return (
         <Box
@@ -125,6 +143,7 @@ const Navbar: React.FC = () => {
                     {suggestions.length > 0 && (
                         <Box
                             position="absolute"
+                            ref={suggestionsRef}
                             top="100%"
                             left="0"
                             right="0"
