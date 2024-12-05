@@ -89,7 +89,11 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ searchQuery }) => {
 
                 {/* Pagination Controls */}
                 <Flex justifyContent="center" mt="8" gap="4">
-                    <Button onClick={handlePrevious} isDisabled={currentPage === 1}>
+                    <Button
+                        onClick={handlePrevious}
+                        isDisabled={currentPage === 1}
+                        colorPalette="teal"
+                    >
                         Previous
                     </Button>
                     <Text alignSelf="center">
@@ -97,6 +101,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ searchQuery }) => {
                     </Text>
                     <Button
                         onClick={handleNext}
+                        colorPalette="teal"
                         isDisabled={currentPage * itemsPerPage >= total}
                     >
                         Next

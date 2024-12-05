@@ -66,7 +66,7 @@ const ProductDetailPage: React.FC = () => {
 
     return (
         <Container maxW="container.lg" py="8">
-            <Button as={Link} to="/" colorScheme="teal" mb="6">
+            <Button as={Link} to="/" colorPalette="teal" mb="6">
                 Back to Products
             </Button>
 

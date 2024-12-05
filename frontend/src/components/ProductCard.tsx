@@ -88,7 +88,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 <Button
                     as={Link}
                     to={`/products/${product.id}`}
-                    colorScheme="teal"
+                    colorPalette="teal"
                     size="sm"
                     mt="4"
                     width="100%"
