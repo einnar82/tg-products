@@ -16,50 +16,53 @@ import { useNavigate } from "react-router-dom";
 import { useAppState } from "@/hooks/useAppContext.tsx";
 
 const Navbar: React.FC = () => {
-    const { state, dispatch, actions } = useAppState();
-    const { suggestions, searchTerm } = state;
-    const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm || "");
     const navigate = useNavigate();
+    const { state, dispatch, actions } = useAppState();
+    const { suggestions } = state;
 
+    const [searchTerm, setSearchTerm] = useState<string>("");
+
+    // Debounced Search Term
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>(searchTerm);
+
+    // Handle input changes
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const query = e.target.value;
-        setLocalSearchTerm(query);
-        dispatch({ type: "SET_SEARCH_TERM", payload: query });
-
-        if (!query.trim()) {
-            dispatch({ type: "SET_SUGGESTIONS", payload: [] }); // Clear suggestions if input is empty
-        } else {
-            actions.fetchSuggestions(query, dispatch); // Fetch suggestions
-        }
+        setSearchTerm(query);
     };
 
-    const handleSearch = () => {
-        dispatch({ type: "SET_SEARCH_TERM", payload: localSearchTerm });
-        actions.searchProducts(localSearchTerm, dispatch); // Trigger search
-        navigate("/"); // Redirect to the product list page
-    };
-
+    // Handle logo click
     const handleLogoClick = () => {
         dispatch({ type: "SET_SEARCH_TERM", payload: "" });
-        actions.fetchProducts(dispatch, searchTerm); // Fetch all products
+        dispatch({ type: "SET_SUGGESTIONS", payload: [] });
         navigate("/");
     };
 
+    // Handle key press (Enter)
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === "Enter") {
-            handleSearch();
+        if (event.key === "Enter" && searchTerm.trim()) {
+            dispatch({ type: "SET_SEARCH_TERM", payload: searchTerm });
+            actions.searchProducts(searchTerm, dispatch); // Trigger a search
         }
     };
 
+    // Update debounced search term with a delay
     useEffect(() => {
-        const debounceFetch = setTimeout(() => {
-            if (localSearchTerm.trim()) {
-                actions.fetchSuggestions(localSearchTerm, dispatch);
-            }
-        }, 300); // Debounce API calls by 300ms
+        const debounceTimeout = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 300); // Adjust debounce time as needed
 
-        return () => clearTimeout(debounceFetch);
-    }, [localSearchTerm]);
+        return () => clearTimeout(debounceTimeout);
+    }, [searchTerm]);
+
+    // Trigger suggestions fetch based on the debounced term
+    useEffect(() => {
+        if (debouncedSearchTerm.trim()) {
+            actions.fetchSuggestions(debouncedSearchTerm, dispatch);
+        } else {
+            dispatch({ type: "SET_SUGGESTIONS", payload: [] });
+        }
+    }, [debouncedSearchTerm, dispatch, actions]);
 
     return (
         <Box
@@ -72,6 +75,7 @@ const Navbar: React.FC = () => {
             zIndex="sticky"
         >
             <Flex alignItems="center" position="relative">
+                {/* Brand/Logo */}
                 <Heading
                     as="h1"
                     size="lg"
@@ -82,8 +86,10 @@ const Navbar: React.FC = () => {
                     DummyProducts
                 </Heading>
 
+                {/* Spacer for alignment */}
                 <Spacer />
 
+                {/* Search Bar */}
                 <Group maxW="600px" w="full" attached>
                     <InputAddon
                         style={{
@@ -99,7 +105,7 @@ const Navbar: React.FC = () => {
                     </InputAddon>
                     <Input
                         placeholder="Search products..."
-                        value={localSearchTerm}
+                        value={searchTerm}
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
                         bg="white"
@@ -133,9 +139,12 @@ const Navbar: React.FC = () => {
                                         bg="gray.50"
                                         _hover={{ backgroundColor: "teal.50", cursor: "pointer" }}
                                         onClick={() => {
-                                            dispatch({ type: "SET_SEARCH_TERM", payload: suggestion });
+                                            dispatch({
+                                                type: "SET_SEARCH_TERM",
+                                                payload: suggestion,
+                                            });
                                             actions.searchProducts(suggestion, dispatch);
-                                            navigate("/");
+                                            dispatch({ type: "SET_SUGGESTIONS", payload: [] });
                                         }}
                                         display="flex"
                                         alignItems="center"
