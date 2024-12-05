@@ -14,9 +14,14 @@ class ProductsController extends Controller
     ) {
     }
 
-    public function getProducts(Request $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         return $this->client->getProducts($request->query->all());
+    }
+
+    public function show(Request $request, int $id)
+    {
+        return $this->client->getProduct($id, $request->query->all());
     }
 
     public function searchProducts(Request $request): JsonResponse

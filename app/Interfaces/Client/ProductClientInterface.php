@@ -8,5 +8,7 @@ interface ProductClientInterface
 {
     public function getProducts(?array $params = null): JsonResponse;
 
+    public function getProduct(int $id, ?array $params = null): JsonResponse;
+
     public function searchProducts(?array $params = null): JsonResponse;
 }

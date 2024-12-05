@@ -30,6 +30,19 @@ class ProductClient implements ProductClientInterface
         }
     }
 
+    public function getProduct(int $id, ?array $params = null): JsonResponse
+    {
+        try {
+            $response = $this->request->get(\sprintf('products/%s', $id), $params);
+
+            return \response()->json($response->json());
+        } catch (Throwable $exception) {
+            $this->logger->error('Product API Error: Something went wrong!', $exception->getTrace());
+
+            return \response()->json(['message' => 'Something went wrong!'], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
     public function searchProducts(?array $params = null): JsonResponse
     {
         try {

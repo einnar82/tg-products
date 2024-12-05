@@ -87,7 +87,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 {/* Call-to-Action Button */}
                 <Button
                     as={Link}
-                    to={`/product/${product.id}`}
+                    to={`/products/${product.id}`}
                     colorScheme="teal"
                     size="sm"
                     mt="4"

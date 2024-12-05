@@ -8,24 +8,26 @@ import {
     Button,
     Flex,
 } from "@chakra-ui/react";
-import Navbar from "@/components/Navbar"; // Import the Navbar
 import ProductCard from "@/components/ProductCard";
 import { Product } from "@/types/Product";
 
-const ProductsPage: React.FC = () => {
+interface ProductsPageProps {
+    searchQuery: string; // Search query passed from Navbar
+}
+
+const ProductsPage: React.FC<ProductsPageProps> = ({ searchQuery }) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [total, setTotal] = useState<number>(0);
-    const [query, setQuery] = useState<string>(""); // Query for search or listing
 
     const itemsPerPage = 10; // Number of items per page
 
-    const fetchProducts = async (page: number, query: string) => {
+    const fetchProducts = async (page: number) => {
         setLoading(true);
         const skip = (page - 1) * itemsPerPage;
-        const endpoint = query
-            ? `http://127.0.0.1:8000/api/products/search?q=${query}&limit=${itemsPerPage}&skip=${skip}`
+        const endpoint = searchQuery
+            ? `http://127.0.0.1:8000/api/products/search?q=${searchQuery}&limit=${itemsPerPage}&skip=${skip}`
             : `http://127.0.0.1:8000/api/products?limit=${itemsPerPage}&skip=${skip}`;
 
         try {
@@ -43,8 +45,8 @@ const ProductsPage: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchProducts(currentPage, query);
-    }, [currentPage, query]);
+        fetchProducts(currentPage);
+    }, [currentPage, searchQuery]);
 
     const handleNext = () => {
         if (currentPage * itemsPerPage < total) {
@@ -58,11 +60,6 @@ const ProductsPage: React.FC = () => {
         }
     };
 
-    const handleSearch = (searchTerm: string) => {
-        setQuery(searchTerm); // Update the query with the search term
-        setCurrentPage(1); // Reset to the first page for the new search
-    };
-
     if (loading) {
         return (
             <Container centerContent mt="10">
@@ -74,9 +71,6 @@ const ProductsPage: React.FC = () => {
 
     return (
         <>
-            {/* Navbar with Search */}
-            <Navbar onSearch={handleSearch} />
-
             {/* Product Grid */}
             <Container maxW="container.lg" py="8">
                 <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing="8" p="4">
