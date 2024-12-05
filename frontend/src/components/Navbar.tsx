@@ -38,6 +38,13 @@ const Navbar: React.FC = () => {
         navigate("/");
     };
 
+    const handleSearch = (query: string) => {
+        dispatch({ type: "SET_SEARCH_TERM", payload: query });
+        actions.searchProducts(query, dispatch);
+        dispatch({ type: "SET_SUGGESTIONS", payload: [] }); // Clear suggestions
+        navigate(`/products`); // Redirect to search results
+    };
+
     // Handle key press (Enter)
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter" && searchTerm.trim()) {
@@ -138,14 +145,7 @@ const Navbar: React.FC = () => {
                                         borderRadius="md"
                                         bg="gray.50"
                                         _hover={{ backgroundColor: "teal.50", cursor: "pointer" }}
-                                        onClick={() => {
-                                            dispatch({
-                                                type: "SET_SEARCH_TERM",
-                                                payload: suggestion,
-                                            });
-                                            actions.searchProducts(suggestion, dispatch);
-                                            dispatch({ type: "SET_SUGGESTIONS", payload: [] });
-                                        }}
+                                        onClick={() => handleSearch(suggestion)}
                                         display="flex"
                                         alignItems="center"
                                     >
