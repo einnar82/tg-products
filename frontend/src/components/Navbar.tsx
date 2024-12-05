@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {Box, Flex, Input, Heading, Spacer, Icon, Group, InputAddon} from "@chakra-ui/react";
 import {HiMagnifyingGlass} from "react-icons/hi2";
+import {Link} from "react-router-dom";
 
 interface NavbarProps {
     onSearch: (query: string) => void; // Callback to handle search input
@@ -28,7 +29,9 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             <Flex alignItems="center">
                 {/* Brand/Logo */}
                 <Heading as="h1" size="lg" color="white">
-                    DummyProducts
+                    <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
+                        DummyProducts
+                    </Link>
                 </Heading>
 
                 {/* Spacer for alignment */}
