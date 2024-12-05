@@ -69,6 +69,14 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ searchQuery }) => {
         );
     }
 
+    if (products.length === 0) {
+        return (
+            <Container centerContent mt="10">
+                <Text mt="4">No results found.</Text>
+            </Container>
+        );
+    }
+
     return (
         <>
             {/* Product Grid */}
