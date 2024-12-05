@@ -23,8 +23,8 @@ export const actions = {
         }
     },
     searchProducts: async (query: string, dispatch: React.Dispatch<Action>) => {
-        dispatch({ type: "SET_SEARCH_TERM", payload: searchTerm });
-        await actions.fetchProducts(dispatch, searchTerm);
+        dispatch({ type: "SET_SEARCH_TERM", payload: query });
+        await actions.fetchProducts(dispatch, query);
     },
     fetchProductDetail: async (id: string, dispatch: React.Dispatch<Action>) => {
         dispatch({ type: "SET_LOADING", payload: true });
