@@ -12,11 +12,13 @@ import {
     HStack,
     Separator,
     Button,
+    Stack, Icon,
 } from "@chakra-ui/react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 
 import { Product } from "@/types/Product";
+import {HiMiniStar} from "react-icons/hi2";
 
 const ProductDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>(); // Get the product ID from the URL
@@ -70,13 +72,12 @@ const ProductDetailPage: React.FC = () => {
 
             <Flex flexDirection={{ base: "column", md: "row" }} gap="8">
                 {/* Product Image */}
-                <Box flex="1">
+                <Box flex="1" bg="gray.100" p="4" borderRadius="lg" boxShadow="md">
                     <Image
                         src={product.thumbnail}
                         alt={product.title}
                         objectFit="contain"
                         borderRadius="lg"
-                        boxShadow="md"
                         maxH="400px"
                         mx="auto"
                     />
@@ -86,7 +87,7 @@ const ProductDetailPage: React.FC = () => {
                 <VStack align="start" spacing="4" flex="2">
                     <Heading size="lg">{product.title}</Heading>
                     <Badge
-                        colorScheme={
+                        colorPalette={
                             product.availabilityStatus === "In Stock"
                                 ? "green"
                                 : "red"
@@ -120,6 +121,21 @@ const ProductDetailPage: React.FC = () => {
                             </Badge>
                         ))}
                     </HStack>
+                    <HStack mt="2">
+                        {Array(5)
+                            .fill("")
+                            .map((_, i) => (
+                                <Icon
+                                    key={i}
+                                    color={i < Math.round(product.rating) ? "yellow.400" : "gray.300"}
+                                >
+                                    <HiMiniStar />
+                                </Icon>
+                            ))}
+                        <Text fontSize="sm" color="gray.600">
+                            ({product.rating.toFixed(1)})
+                        </Text>
+                    </HStack>
                     <Separator />
                     <Text fontSize="sm" color="gray.500">
                         Shipping Information: {product.shippingInformation}
@@ -129,6 +145,45 @@ const ProductDetailPage: React.FC = () => {
                     </Text>
                 </VStack>
             </Flex>
+
+            {/* Reviews Section */}
+            <Box mt="8" py="4">
+                <Heading size="md" mb="4">
+                    Customer Reviews
+                </Heading>
+                {product.reviews && product.reviews.length > 0 ? (
+                    <Stack spacing="4">
+                        {product.reviews.map((review, index) => (
+                            <Box
+                                key={index}
+                                p="4"
+                                borderWidth="1px"
+                                borderRadius="lg"
+                                bg="gray.50"
+                                boxShadow="sm"
+                            >
+                                <HStack justify="space-between" align="start">
+                                    <Text fontWeight="bold" style={{
+                                        color: 'black'
+                                    }}>{review.reviewerName}</Text>
+                                    <Badge
+                                        colorPalette={review.rating >= 4 ? "green" : "yellow"}
+                                    >
+                                        {review.rating} Stars
+                                    </Badge>
+                                </HStack>
+                                <Text fontSize="sm" color="gray.600" mt="2">
+                                    {review.comment}
+                                </Text>
+                            </Box>
+                        ))}
+                    </Stack>
+                ) : (
+                    <Text fontSize="sm" color="gray.600">
+                        No reviews available for this product.
+                    </Text>
+                )}
+            </Box>
         </Container>
     );
 };
