@@ -10,37 +10,38 @@ import {
     Container,
     VStack,
     HStack,
-    Separator,
+    Stack,
     Button,
-    Stack, Icon,
+    Icon,
 } from "@chakra-ui/react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
-
-import { Product } from "@/types/Product";
-import {HiMiniStar} from "react-icons/hi2";
+import { HiMiniStar } from "react-icons/hi2";
+import { useAppState } from "@/hooks/useAppContext.tsx";
 
 const ProductDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>(); // Get the product ID from the URL
-    const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const { state, actions, dispatch } = useAppState();
+    const { product } = state;
 
     useEffect(() => {
         const fetchProduct = async () => {
+            setLoading(true);
+            setError(null); // Reset error state
             try {
-                const response = await axios.get<Product>(
-                    `http://localhost:8000/api/products/${id}`
-                );
-                setProduct(response.data);
-            } catch (error) {
-                console.error("Failed to fetch product:", error);
+                await actions.fetchProductDetail(id, dispatch); // Fetch product details
+            } catch (err) {
+                console.error(err);
+                setError("Product not found."); // Set error if fetch fails
             } finally {
                 setLoading(false);
             }
         };
 
         fetchProduct();
-    }, [id]);
+    }, [id, actions, dispatch]);
 
     if (loading) {
         return (
@@ -51,11 +52,11 @@ const ProductDetailPage: React.FC = () => {
         );
     }
 
-    if (!product) {
+    if (error || !product) {
         return (
             <Container centerContent mt="10">
                 <Text fontSize="lg" color="red.500">
-                    Product not found.
+                    {error || "Product not found."}
                 </Text>
                 <Button as={Link} to="/" colorScheme="teal" mt="4">
                     Go Back to Product List
@@ -87,7 +88,7 @@ const ProductDetailPage: React.FC = () => {
                 <VStack align="start" spacing="4" flex="2">
                     <Heading size="lg">{product.title}</Heading>
                     <Badge
-                        colorPalette={
+                        colorScheme={
                             product.availabilityStatus === "In Stock"
                                 ? "green"
                                 : "red"
@@ -110,17 +111,6 @@ const ProductDetailPage: React.FC = () => {
                     <Text fontSize="md" color="gray.600">
                         {product.description}
                     </Text>
-                    <Separator />
-                    <Text fontSize="md" fontWeight="semibold">
-                        Tags:
-                    </Text>
-                    <HStack wrap="wrap" gap="2">
-                        {product.tags.map((tag) => (
-                            <Badge key={tag} colorScheme="teal">
-                                {tag}
-                            </Badge>
-                        ))}
-                    </HStack>
                     <HStack mt="2">
                         {Array(5)
                             .fill("")
@@ -136,54 +126,8 @@ const ProductDetailPage: React.FC = () => {
                             ({product.rating.toFixed(1)})
                         </Text>
                     </HStack>
-                    <Separator />
-                    <Text fontSize="sm" color="gray.500">
-                        Shipping Information: {product.shippingInformation}
-                    </Text>
-                    <Text fontSize="sm" color="gray.500">
-                        Warranty: {product.warrantyInformation}
-                    </Text>
                 </VStack>
             </Flex>
-
-            {/* Reviews Section */}
-            <Box mt="8" py="4">
-                <Heading size="md" mb="4">
-                    Customer Reviews
-                </Heading>
-                {product.reviews && product.reviews.length > 0 ? (
-                    <Stack spacing="4">
-                        {product.reviews.map((review, index) => (
-                            <Box
-                                key={index}
-                                p="4"
-                                borderWidth="1px"
-                                borderRadius="lg"
-                                bg="gray.50"
-                                boxShadow="sm"
-                            >
-                                <HStack justify="space-between" align="start">
-                                    <Text fontWeight="bold" style={{
-                                        color: 'black'
-                                    }}>{review.reviewerName}</Text>
-                                    <Badge
-                                        colorPalette={review.rating >= 4 ? "green" : "yellow"}
-                                    >
-                                        {review.rating} Stars
-                                    </Badge>
-                                </HStack>
-                                <Text fontSize="sm" color="gray.600" mt="2">
-                                    {review.comment}
-                                </Text>
-                            </Box>
-                        ))}
-                    </Stack>
-                ) : (
-                    <Text fontSize="sm" color="gray.600">
-                        No reviews available for this product.
-                    </Text>
-                )}
-            </Box>
         </Container>
     );
 };

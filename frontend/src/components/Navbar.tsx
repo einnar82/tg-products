@@ -10,85 +10,56 @@ import {
     InputAddon,
     List,
     Text,
-
 } from "@chakra-ui/react";
 import { HiMagnifyingGlass } from "react-icons/hi2";
-import {Link, useNavigate} from "react-router-dom";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useAppState } from "@/hooks/useAppContext.tsx";
 
-interface NavbarProps {
-    onSearch: (query: string) => void; // Callback to handle search input
-}
-
-const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
-    const [searchTerm, setSearchTerm] = useState<string>("");
-    const [suggestions, setSuggestions] = useState<string[]>([]);
+const Navbar: React.FC = () => {
+    const { state, dispatch, actions } = useAppState();
+    const { suggestions, searchTerm } = state;
+    const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm || "");
     const navigate = useNavigate();
-    const handleLogoClick = () => {
-        setSearchTerm(""); // Reset the search term
-        setSuggestions([]); // Clear suggestions
-        onSearch(""); // Trigger search with an empty query
-        navigate("/"); // Navigate to the home page
-    };
-
-
-    const handleKeyDown = async (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === "Enter") {
-            if (searchTerm.trim()) {
-                onSearch(searchTerm); // Fetch specific products if there’s a search term
-            } else {
-                const allProducts = await fetchAllProducts();
-                onSearch(""); // Clear the term to indicate fetching all products
-                console.log(allProducts); // Use this to debug fetched products
-            }
-        }
-    };
-
-    const fetchAllProducts = async () => {
-        try {
-            const response = await axios.get("http://127.0.0.1:8000/api/products");
-            return response.data.products || [];
-        } catch (error) {
-            console.error("Failed to fetch all products:", error);
-            return [];
-        }
-    };
-
-    const fetchSuggestions = async (query: string) => {
-        if (!query.trim()) {
-            setSuggestions([]);
-            return;
-        }
-
-        try {
-            const response = await axios.get<{ products: { title: string }[] }>(
-                `http://127.0.0.1:8000/api/products/search?q=${query}`
-            );
-            const productTitles = response.data.products.map((product) => product.title);
-            setSuggestions(productTitles);
-        } catch (error) {
-            console.error("Failed to fetch suggestions:", error);
-            setSuggestions([]);
-        }
-    };
-
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
-        if (!e.target.value.trim()) {
-            setSuggestions([]); // Clear suggestions if input is empty
+        const query = e.target.value;
+        setLocalSearchTerm(query);
+        dispatch({ type: "SET_SEARCH_TERM", payload: query });
+
+        if (!query.trim()) {
+            dispatch({ type: "SET_SUGGESTIONS", payload: [] }); // Clear suggestions if input is empty
         } else {
-            fetchSuggestions(e.target.value);
+            actions.fetchSuggestions(query, dispatch); // Fetch suggestions
+        }
+    };
+
+    const handleSearch = () => {
+        dispatch({ type: "SET_SEARCH_TERM", payload: localSearchTerm });
+        actions.searchProducts(localSearchTerm, dispatch); // Trigger search
+        navigate("/"); // Redirect to the product list page
+    };
+
+    const handleLogoClick = () => {
+        dispatch({ type: "SET_SEARCH_TERM", payload: "" });
+        actions.fetchProducts(dispatch, searchTerm); // Fetch all products
+        navigate("/");
+    };
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Enter") {
+            handleSearch();
         }
     };
 
     useEffect(() => {
         const debounceFetch = setTimeout(() => {
-            fetchSuggestions(searchTerm);
+            if (localSearchTerm.trim()) {
+                actions.fetchSuggestions(localSearchTerm, dispatch);
+            }
         }, 300); // Debounce API calls by 300ms
 
         return () => clearTimeout(debounceFetch);
-    }, [searchTerm]);
+    }, [localSearchTerm]);
 
     return (
         <Box
@@ -101,7 +72,6 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             zIndex="sticky"
         >
             <Flex alignItems="center" position="relative">
-                {/* Brand/Logo */}
                 <Heading
                     as="h1"
                     size="lg"
@@ -112,10 +82,8 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                     DummyProducts
                 </Heading>
 
-                {/* Spacer for alignment */}
                 <Spacer />
 
-                {/* Search Bar */}
                 <Group maxW="600px" w="full" attached>
                     <InputAddon
                         style={{
@@ -131,15 +99,13 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                     </InputAddon>
                     <Input
                         placeholder="Search products..."
-                        value={searchTerm}
+                        value={localSearchTerm}
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
                         bg="white"
                         border="1px"
                         borderColor="gray.300"
-                        style={{
-                            color: "black",
-                        }}
+                        style={{ color: "black" }}
                         _placeholder={{ color: "gray.500" }}
                     />
                     {/* Suggestions Dropdown */}
@@ -167,9 +133,9 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                                         bg="gray.50"
                                         _hover={{ backgroundColor: "teal.50", cursor: "pointer" }}
                                         onClick={() => {
-                                            setSearchTerm(suggestion);
-                                            onSearch(suggestion);
-                                            setSuggestions([]); // Clear suggestions after selection
+                                            dispatch({ type: "SET_SEARCH_TERM", payload: suggestion });
+                                            actions.searchProducts(suggestion, dispatch);
+                                            navigate("/");
                                         }}
                                         display="flex"
                                         alignItems="center"
