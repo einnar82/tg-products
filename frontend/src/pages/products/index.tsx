@@ -3,34 +3,36 @@ import axios from "axios";
 import {
     SimpleGrid,
     Container,
-    Heading,
     Spinner,
     Text,
     Button,
     Flex,
 } from "@chakra-ui/react";
-import { Product } from "@/types/Product";
+import Navbar from "@/components/Navbar"; // Import the Navbar
 import ProductCard from "@/components/ProductCard";
+import { Product } from "@/types/Product";
 
 const ProductsPage: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [total, setTotal] = useState<number>(0);
+    const [query, setQuery] = useState<string>(""); // Query for search or listing
 
-    const itemsPerPage = 10; // Number of items to show per page
+    const itemsPerPage = 10; // Number of items per page
 
-    const fetchProducts = async (page: number) => {
+    const fetchProducts = async (page: number, query: string) => {
         setLoading(true);
         const skip = (page - 1) * itemsPerPage;
+        const endpoint = query
+            ? `http://127.0.0.1:8000/api/products/search?q=${query}&limit=${itemsPerPage}&skip=${skip}`
+            : `http://127.0.0.1:8000/api/products?limit=${itemsPerPage}&skip=${skip}`;
 
         try {
             const response = await axios.get<{
                 products: Product[];
                 total: number;
-            }>(
-                `http://127.0.0.1:8000/api/products/search?q=phone&limit=${itemsPerPage}&skip=${skip}`
-            );
+            }>(endpoint);
             setProducts(response.data.products);
             setTotal(response.data.total);
         } catch (error) {
@@ -41,8 +43,8 @@ const ProductsPage: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchProducts(currentPage);
-    }, [currentPage]);
+        fetchProducts(currentPage, query);
+    }, [currentPage, query]);
 
     const handleNext = () => {
         if (currentPage * itemsPerPage < total) {
@@ -56,6 +58,11 @@ const ProductsPage: React.FC = () => {
         }
     };
 
+    const handleSearch = (searchTerm: string) => {
+        setQuery(searchTerm); // Update the query with the search term
+        setCurrentPage(1); // Reset to the first page for the new search
+    };
+
     if (loading) {
         return (
             <Container centerContent mt="10">
@@ -66,30 +73,35 @@ const ProductsPage: React.FC = () => {
     }
 
     return (
-        <Container maxW="container.lg" py="8">
-            <Heading mb="6">Product Listing</Heading>
-            <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing="8" p="4">
-                {products.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                ))}
-            </SimpleGrid>
+        <>
+            {/* Navbar with Search */}
+            <Navbar onSearch={handleSearch} />
 
-            {/* Pagination Controls */}
-            <Flex justifyContent="center" mt="8" gap="4">
-                <Button onClick={handlePrevious} isDisabled={currentPage === 1}>
-                    Previous
-                </Button>
-                <Text alignSelf="center">
-                    Page {currentPage} of {Math.ceil(total / itemsPerPage)}
-                </Text>
-                <Button
-                    onClick={handleNext}
-                    isDisabled={currentPage * itemsPerPage >= total}
-                >
-                    Next
-                </Button>
-            </Flex>
-        </Container>
+            {/* Product Grid */}
+            <Container maxW="container.lg" py="8">
+                <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing="8" p="4">
+                    {products.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                    ))}
+                </SimpleGrid>
+
+                {/* Pagination Controls */}
+                <Flex justifyContent="center" mt="8" gap="4">
+                    <Button onClick={handlePrevious} isDisabled={currentPage === 1}>
+                        Previous
+                    </Button>
+                    <Text alignSelf="center">
+                        Page {currentPage} of {Math.ceil(total / itemsPerPage)}
+                    </Text>
+                    <Button
+                        onClick={handleNext}
+                        isDisabled={currentPage * itemsPerPage >= total}
+                    >
+                        Next
+                    </Button>
+                </Flex>
+            </Container>
+        </>
     );
 };
 
